@@ -1,7 +1,5 @@
-import { Marked } from 'marked';
 import { icon } from './icons.js';
-
-const marked = new Marked();
+import { renderMarkdown } from './markdown.js';
 
 const textarea = document.getElementById('editor-textarea');
 const preview = document.getElementById('preview-content');
@@ -17,7 +15,8 @@ let tags = [];
 
 // --- Live markdown preview ---
 export function updatePreview() {
-  preview.innerHTML = marked.parse(textarea.value || '');
+  const { html, tocHtml } = renderMarkdown(textarea.value || '');
+  preview.innerHTML = `${tocHtml}<div class="prose">${html}</div>`;
 }
 
 // --- Sync scroll ---
