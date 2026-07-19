@@ -1058,6 +1058,96 @@ function handlePanelEscape(e) {
     switchToTab('edit');
   }
 
+  // --- PWA Installation Logic ---
+  let deferredPrompt = null;
+  const btnInstall = document.getElementById('btn-install');
+
+  if (btnInstall) {
+    btnInstall.innerHTML = icon('file-download');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      btnInstall.style.display = 'inline-flex';
+    });
+
+    btnInstall.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User choice: ${outcome}`);
+      deferredPrompt = null;
+      btnInstall.style.display = 'none';
+    });
+
+    window.addEventListener('appinstalled', () => {
+      console.log('App installed successfully');
+      btnInstall.style.display = 'none';
+      deferredPrompt = null;
+    });
+  }
+
+  // --- iOS PWA Install Banner ---
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || 
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isStandalone = window.navigator.standalone === true || 
+                       window.matchMedia('(display-mode: standalone)').matches;
+  const isDismissed = localStorage.getItem('enotes-ios-banner-dismissed') === 'true';
+
+  if (isIOS && !isStandalone && !isDismissed) {
+    const banner = document.createElement('div');
+    banner.id = 'ios-install-banner';
+    banner.className = 'ios-install-banner';
+    banner.innerHTML = `
+      <div class="ios-install-banner-content">
+        <div class="ios-install-banner-header">
+          <div class="ios-install-banner-logo">
+            <span class="logo-icon-svg"></span>
+            <h3>Pasang ENotes</h3>
+          </div>
+          <button id="btn-close-ios-banner" class="btn-close-banner">&times;</button>
+        </div>
+        <p class="ios-install-banner-text">
+          Pasang ENotes di layar utama iOS Anda untuk pengalaman layar penuh & offline yang lebih baik seperti aplikasi asli:
+        </p>
+        <div class="ios-install-steps">
+          <div class="ios-step">
+            <span class="ios-step-num">1</span>
+            <span class="ios-step-desc">Ketuk tombol <strong>Bagikan (Share)</strong> di bagian bawah layar Safari <span class="ios-step-icon-inline">${iconShare()}</span></span>
+          </div>
+          <div class="ios-step">
+            <span class="ios-step-num">2</span>
+            <span class="ios-step-desc">Gulir ke bawah dan pilih <strong>Tambah ke Layar Utama (Add to Home Screen)</strong> <span class="ios-step-icon-inline">${iconAdd()}</span></span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const logoIcon = banner.querySelector('.logo-icon-svg');
+    if (logoIcon) {
+      logoIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>`;
+    }
+
+    document.body.appendChild(banner);
+
+    const closeBtn = banner.querySelector('#btn-close-ios-banner');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        banner.classList.add('hide');
+        localStorage.setItem('enotes-ios-banner-dismissed', 'true');
+        setTimeout(() => banner.remove(), 300);
+      });
+    }
+  }
+
+  function iconShare() {
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; display: inline-block; margin: 0 2px; color: #007aff;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>`;
+  }
+
+  function iconAdd() {
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; display: inline-block; margin: 0 2px; color: var(--text-primary);"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>`;
+  }
+
   // --- Register Service Worker for PWA ---
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

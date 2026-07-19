@@ -1745,12 +1745,20 @@ body, #app, #navbar, #sidebar, #main-area, #bottom-panel,
     margin: 0 !important;
   }
 
-  /* Smooth panel fade-in animation on switch */
   [data-active-tab="cues"] #sidebar,
   [data-active-tab="edit"] #main-area,
   [data-active-tab="preview"] #preview-pane,
   [data-active-tab="summary"] #bottom-panel {
     animation: mobileTabFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Prevent iOS Safari auto-zoom on input focus by ensuring font-size is at least 16px */
+  #editor-textarea,
+  #summary-textarea,
+  .cue-input,
+  .tag-input-inline,
+  #palette-input {
+    font-size: 16px !important;
   }
 }
 
@@ -2064,4 +2072,145 @@ body, #app, #navbar, #sidebar, #main-area, #bottom-panel,
   background: var(--bg-surface-hover);
 }
 
+/* === iOS PWA Install Banner === */
+.ios-install-banner {
+  position: fixed;
+  bottom: calc(76px + env(safe-area-inset-bottom, 0));
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 450px;
+  background: color-mix(in srgb, var(--bg-surface) 85%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  z-index: var(--z-modal);
+  padding: 16px;
+  animation: iosBannerSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
 
+[data-theme='dark'] .ios-install-banner {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.ios-install-banner.hide {
+  transform: translate(-50%, 20px) scale(0.95);
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes iosBannerSlideIn {
+  from {
+    transform: translate(-50%, 40px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+.ios-install-banner-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ios-install-banner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ios-install-banner-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ios-install-banner-logo h3 {
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+}
+
+.btn-close-banner {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.btn-close-banner:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.ios-install-banner-text {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+}
+
+.ios-install-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg-root);
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.ios-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  line-height: var(--leading-snug);
+}
+
+.ios-step-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: var(--text-inverse);
+  font-size: 11px;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.ios-step-desc {
+  flex: 1;
+}
+
+.ios-step-icon-inline {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  padding: 2px;
+  margin: 0 2px;
+}
