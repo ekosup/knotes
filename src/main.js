@@ -1,4 +1,5 @@
 import { saveNote, deleteNote, listNotes, getNote, getStorageEstimate } from './db.js';
+import { getEndpoint, setEndpoint, hasEndpoint, getUserId, setUserId, syncNotes } from './sync.js';
 import { getEditorState, setEditorState, clearEditor, onEditorChange, onCueChange, onAddCue, onTagChange, tagsList } from './editor.js';
 import { debounce, formatBytes } from './utils.js';
 import { exportJSON, exportMarkdown, importFile } from './export.js';
@@ -9,6 +10,7 @@ import { initSidebarResize, initEditorPreviewResize, initSummaryResize } from '.
 const themeKey = 'enotes-theme';
 const lastNoteKey = 'enotes-last-note';
 const btnTheme = document.getElementById('btn-theme');
+const btnSync = document.getElementById('btn-sync');
 
 function getTheme() {
   return localStorage.getItem(themeKey) || 'system';
@@ -30,6 +32,83 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
   if (getTheme() === 'system') applyTheme('system');
 });
 
+// --- Sync ---
+function updateSyncIcon(state) {
+  const icons = { idle: 'cloud', syncing: 'loader', ok: 'cloud-check', err: 'cloud-exclamation' };
+  btnSync.innerHTML = icon(icons[state] || 'cloud');
+  btnSync.className = `btn btn-ghost btn-icon-only${state === 'syncing' ? ' badge-saving' : ''}`;
+  if (state === 'ok') {
+    clearTimeout(btnSync._timeout);
+    btnSync._timeout = setTimeout(() => updateSyncIcon('idle'), 2000);
+  }
+}
+
+btnSync.addEventListener('click', async () => {
+  if (!hasEndpoint()) {
+    const url = prompt('Cloud sync endpoint URL:', getEndpoint() || 'https://enotes-sync.namakamu.workers.dev');
+    if (!url) return;
+    setEndpoint(url.trim());
+  }
+  if (!getUserId()) {
+    const userId = prompt('Your user ID — pick something not easy to guess\n(no auth, anyone with this ID can access your notes):', getUserId() || 'eko');
+    if (!userId) return;
+    setUserId(userId.trim());
+  }
+
+  if (dirty) persist.flush();
+
+  const localNotes = await listNotes();
+  const endpoint = getEndpoint();
+  const userId = getUserId();
+
+  await syncNotes(endpoint, userId, localNotes, async (remoteNotes) => {
+    // ponytail: full replacement — server is source of truth, simplest conflict model
+    const remoteIds = new Set(remoteNotes.map((n) => n.id));
+    const localAll = await listNotes();
+    for (const n of localAll) {
+      if (!remoteIds.has(n.id)) await deleteNote(n.id);
+    }
+    for (const n of remoteNotes) {
+      await saveNote(n);
+    }
+
+    // Reload current note if it still exists
+    if (currentNoteId) {
+      const refreshed = await getNote(currentNoteId);
+      if (refreshed) {
+        setEditorState(refreshed);
+        dirty = false;
+      } else {
+        currentNoteId = null;
+        clearEditor();
+      }
+    }
+    updateTriggerLabel();
+    updateStorageInfo();
+  }, updateSyncIcon);
+});
+
+// Right-click to change endpoint or user
+btnSync.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+  const currentEp = getEndpoint();
+  const currentUser = getUserId();
+  const url = prompt('Change sync endpoint:', currentEp || 'https://enotes-sync.namakamu.workers.dev');
+  if (url === null) return;
+  if (url === '') {
+    localStorage.removeItem('enotes-sync-endpoint');
+    localStorage.removeItem('enotes-sync-user');
+    updateSyncIcon('idle');
+    return;
+  }
+  setEndpoint(url.trim());
+
+  const userId = prompt('Change user ID (pick something hard to guess):', currentUser || 'eko');
+  if (userId === null) return;
+  setUserId(userId.trim() || currentUser);
+  updateSyncIcon('idle');
+});
+
 // --- Inject icons ---
 document.getElementById('btn-add-cue').innerHTML = icon('plus');
 document.getElementById('btn-pin').innerHTML = icon('pin');
@@ -37,6 +116,7 @@ document.querySelector('.logo-icon').innerHTML = icon('notes');
 document.querySelector('.palette-search-icon').innerHTML = icon('search');
 document.querySelector('.trigger-search-icon').innerHTML = icon('search');
 document.getElementById('status-badge').innerHTML = icon('cloud-off') + ' Offline';
+updateSyncIcon('idle');
 
 // --- Panel control icons ---
 document.getElementById('btn-maximize-cues').innerHTML = icon('maximize');

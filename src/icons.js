@@ -11,6 +11,9 @@ import IconSun from '@tabler/icons/outline/sun.svg?raw';
 import IconMoon from '@tabler/icons/outline/moon.svg?raw';
 import IconGripVertical from '@tabler/icons/outline/grip-vertical.svg?raw';
 import IconCloudOff from '@tabler/icons/outline/cloud-off.svg?raw';
+import IconCloud from '@tabler/icons/outline/cloud.svg?raw';
+import IconCloudCheck from '@tabler/icons/outline/cloud-check.svg?raw';
+import IconCloudExclamation from '@tabler/icons/outline/cloud-exclamation.svg?raw';
 import IconChevronDown from '@tabler/icons/outline/chevron-down.svg?raw';
 import IconNotes from '@tabler/icons/outline/notes.svg?raw';
 import IconSearch from '@tabler/icons/outline/search.svg?raw';
@@ -43,6 +46,9 @@ const icons = {
   moon: IconMoon,
   'grip-vertical': IconGripVertical,
   'cloud-off': IconCloudOff,
+  cloud: IconCloud,
+  'cloud-check': IconCloudCheck,
+  'cloud-exclamation': IconCloudExclamation,
   'chevron-down': IconChevronDown,
   notes: IconNotes,
   search: IconSearch,
