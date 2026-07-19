@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="/src/style.css" />
 </head>
 <body>
-  <div id="app">
+  <div id="app" data-active-tab="edit">
     <!-- Top Navbar -->
     <header id="navbar">
       <div class="navbar-section navbar-start">
@@ -160,6 +160,26 @@
         <span id="present-zoom-level" class="present-zoom-level">100%</span>
         <button id="btn-present-zoom-in" class="btn btn-ghost btn-icon-only btn-sm" title="Zoom in"></button>
       </div>
+    </div>
+
+    <!-- Mobile Tab Bar (Visible only on mobile devices) -->
+    <div id="mobile-tab-bar" class="mobile-tab-bar">
+      <button class="mobile-tab-btn" data-tab="cues">
+        <span class="mobile-tab-icon"></span>
+        <span class="mobile-tab-label">Cues</span>
+      </button>
+      <button class="mobile-tab-btn active" data-tab="edit">
+        <span class="mobile-tab-icon"></span>
+        <span class="mobile-tab-label">Edit</span>
+      </button>
+      <button class="mobile-tab-btn" data-tab="preview">
+        <span class="mobile-tab-icon"></span>
+        <span class="mobile-tab-label">Preview</span>
+      </button>
+      <button class="mobile-tab-btn" data-tab="summary">
+        <span class="mobile-tab-icon"></span>
+        <span class="mobile-tab-label">Summary</span>
+      </button>
     </div>
   </div>
 

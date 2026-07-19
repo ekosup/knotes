@@ -188,6 +188,22 @@ async function updateTriggerLabel() {
   if (note) currentLabel.textContent = note.title || '(untitled)';
 }
 
+// --- Mobile Tab Switching ---
+function switchToTab(tabName) {
+  const app = document.getElementById('app');
+  if (app) {
+    app.setAttribute('data-active-tab', tabName);
+  }
+  const mobileTabBtns = document.querySelectorAll('.mobile-tab-btn');
+  mobileTabBtns.forEach(btn => {
+    if (btn.getAttribute('data-tab') === tabName) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+}
+
 // --- Load note ---
 async function loadNote(id) {
   if (!id) {
@@ -195,6 +211,7 @@ async function loadNote(id) {
     clearEditor();
     persistLastNote(null);
     updateTriggerLabel();
+    switchToTab('edit');
     return;
   }
   const note = await getNote(id);
@@ -203,6 +220,7 @@ async function loadNote(id) {
     clearEditor();
     persistLastNote(null);
     updateTriggerLabel();
+    switchToTab('edit');
     return;
   }
   currentNoteId = note.id;
@@ -210,6 +228,7 @@ async function loadNote(id) {
   dirty = false;
   persistLastNote(note.id);
   updateTriggerLabel();
+  switchToTab('edit');
 }
 
 // --- Command Palette ---
@@ -441,6 +460,7 @@ async function newNote() {
   dirty = false;
   persistLastNote(null);
   updateTriggerLabel();
+  switchToTab('edit');
 }
 
 // --- Delete note ---
@@ -985,4 +1005,27 @@ function handlePanelEscape(e) {
   const textarea = document.getElementById('editor-textarea');
   textarea.addEventListener('input', updateCounts);
   updateCounts();
+
+  // --- Mobile Tabs Initialization & Event Listeners ---
+  const mobileTabBtns = document.querySelectorAll('.mobile-tab-btn');
+  mobileTabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.getAttribute('data-tab');
+      switchToTab(tab);
+    });
+  });
+
+  const cuesTabIcon = document.querySelector('.mobile-tab-btn[data-tab="cues"] .mobile-tab-icon');
+  const editTabIcon = document.querySelector('.mobile-tab-btn[data-tab="edit"] .mobile-tab-icon');
+  const previewTabIcon = document.querySelector('.mobile-tab-btn[data-tab="preview"] .mobile-tab-icon');
+  const summaryTabIcon = document.querySelector('.mobile-tab-btn[data-tab="summary"] .mobile-tab-icon');
+
+  if (cuesTabIcon) cuesTabIcon.innerHTML = icon('list');
+  if (editTabIcon) editTabIcon.innerHTML = icon('notes');
+  if (previewTabIcon) previewTabIcon.innerHTML = icon('eye');
+  if (summaryTabIcon) summaryTabIcon.innerHTML = icon('file-text');
+
+  if (window.innerWidth <= 768) {
+    switchToTab('edit');
+  }
 })();

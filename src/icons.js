@@ -32,6 +32,7 @@ import IconChevronRight from '@tabler/icons/outline/chevron-right.svg?raw';
 import IconChevronUp from '@tabler/icons/outline/chevron-up.svg?raw';
 import IconPresentation from '@tabler/icons/outline/presentation.svg?raw';
 import IconList from '@tabler/icons/outline/list.svg?raw';
+import IconFileText from '@tabler/icons/outline/file-text.svg?raw';
 
 import IconZoomIn from '@tabler/icons/outline/zoom-in.svg?raw';
 import IconZoomOut from '@tabler/icons/outline/zoom-out.svg?raw';
@@ -67,6 +68,7 @@ const icons = {
   'chevron-up': IconChevronUp,
   presentation: IconPresentation,
   list: IconList,
+  'file-text': IconFileText,
   'zoom-in': IconZoomIn,
   'zoom-out': IconZoomOut,
 };
