@@ -2,7 +2,7 @@
   "name": "ENotes",
   "short_name": "ENotes",
   "description": "A lightweight, offline-first Cornell Notes application. Zero cloud, zero tracking — your notes stay yours.",
-  "start_url": "/",
+  "start_url": "/knotes",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#0e0e0e",
