@@ -86,6 +86,7 @@ Acts as the global command center.
 | **Import/Export** | Allows backing up or moving notes as raw data. | Local file generation (`Blob` API) for JSON/MD. |
 | **Search/Filter** | Quick client-side filtering across cues and content. | Local text matching index. |
 | **Zero-Network Lock** | Ensures no network packets leave the app. | Hard-coded local assets, no remote fonts/CDNs. |
+| **Slide Presentation Mode** | Converts markdown horizontal rules (`---`) into individual interactive presentation slides. | Custom responsive DOM parser with fit-to-screen scaling, manual zoom controls (+/-), and keyboard navigation shortcuts. |
 
 ---
 

@@ -20,6 +20,18 @@ import IconCheck from '@tabler/icons/outline/check.svg?raw';
 import IconPin from '@tabler/icons/outline/pin.svg?raw';
 import IconPinned from '@tabler/icons/outline/pinned.svg?raw';
 import IconTag from '@tabler/icons/outline/tag.svg?raw';
+import IconMaximize from '@tabler/icons/outline/arrows-maximize.svg?raw';
+import IconMinimize from '@tabler/icons/outline/arrows-minimize.svg?raw';
+import IconEye from '@tabler/icons/outline/eye.svg?raw';
+import IconEyeOff from '@tabler/icons/outline/eye-off.svg?raw';
+import IconChevronLeft from '@tabler/icons/outline/chevron-left.svg?raw';
+import IconChevronRight from '@tabler/icons/outline/chevron-right.svg?raw';
+import IconChevronUp from '@tabler/icons/outline/chevron-up.svg?raw';
+import IconPresentation from '@tabler/icons/outline/presentation.svg?raw';
+import IconList from '@tabler/icons/outline/list.svg?raw';
+
+import IconZoomIn from '@tabler/icons/outline/zoom-in.svg?raw';
+import IconZoomOut from '@tabler/icons/outline/zoom-out.svg?raw';
 
 const icons = {
   plus: IconPlus,
@@ -40,6 +52,17 @@ const icons = {
   pin: IconPin,
   'pin-filled': IconPinned,
   tag: IconTag,
+  maximize: IconMaximize,
+  minimize: IconMinimize,
+  eye: IconEye,
+  'eye-off': IconEyeOff,
+  'chevron-left': IconChevronLeft,
+  'chevron-right': IconChevronRight,
+  'chevron-up': IconChevronUp,
+  presentation: IconPresentation,
+  list: IconList,
+  'zoom-in': IconZoomIn,
+  'zoom-out': IconZoomOut,
 };
 
 /**

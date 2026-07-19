@@ -23,6 +23,8 @@ export function initSidebarResize() {
   let startX, startW;
 
   handle.addEventListener('mousedown', (e) => {
+    // Don't resize if panel is maximized or collapsed
+    if (sidebar.classList.contains('panel-maximized') || sidebar.classList.contains('panel-collapsed')) return;
     dragging = true;
     startX = e.clientX;
     startW = sidebar.getBoundingClientRect().width;
@@ -62,6 +64,8 @@ export function initEditorPreviewResize() {
   let startX, startFlex;
 
   handle.addEventListener('mousedown', (e) => {
+    // Don't resize if preview is maximized or hidden
+    if (preview.classList.contains('panel-maximized') || preview.classList.contains('panel-hidden')) return;
     dragging = true;
     startX = e.clientX;
     startFlex = getFlex(editor);
@@ -102,6 +106,8 @@ export function initSummaryResize() {
   let startY, startH;
 
   handle.addEventListener('mousedown', (e) => {
+    // Don't resize if panel is maximized or collapsed
+    if (panel.classList.contains('panel-maximized') || panel.classList.contains('panel-collapsed')) return;
     dragging = true;
     startY = e.clientY;
     startH = panel.getBoundingClientRect().height;

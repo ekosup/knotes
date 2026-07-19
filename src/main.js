@@ -38,6 +38,15 @@ document.querySelector('.palette-search-icon').innerHTML = icon('search');
 document.querySelector('.trigger-search-icon').innerHTML = icon('search');
 document.getElementById('status-badge').innerHTML = icon('cloud-off') + ' Offline';
 
+// --- Panel control icons ---
+document.getElementById('btn-maximize-cues').innerHTML = icon('maximize');
+document.getElementById('btn-maximize-summary').innerHTML = icon('maximize');
+document.getElementById('btn-hide-preview').innerHTML = icon('eye-off');
+document.getElementById('btn-toggle-preview').innerHTML = icon('eye-off');
+document.getElementById('btn-maximize-preview').innerHTML = icon('maximize');
+document.getElementById('btn-present-preview').innerHTML = icon('presentation');
+document.getElementById('btn-toc-preview').innerHTML = icon('list');
+
 // --- State ---
 let currentNoteId = null;
 let dirty = false;
@@ -418,6 +427,324 @@ function escHTML(s) {
   return d.innerHTML;
 }
 
+// ===========================
+// Panel Maximize / Hide Logic
+// ===========================
+const panelStateKey = 'enotes-panels';
+
+function loadPanelState() {
+  try { return JSON.parse(localStorage.getItem(panelStateKey)) || {}; }
+  catch { return {}; }
+}
+
+function savePanelState(state) {
+  localStorage.setItem(panelStateKey, JSON.stringify(state));
+}
+
+// --- Cues Sidebar Maximize ---
+const sidebar = document.getElementById('sidebar');
+const btnMaxCues = document.getElementById('btn-maximize-cues');
+
+function toggleMaximizeCues() {
+  const isMaximized = sidebar.classList.contains('panel-maximized');
+  if (isMaximized) {
+    sidebar.classList.remove('panel-maximized');
+    btnMaxCues.innerHTML = icon('maximize');
+    btnMaxCues.title = 'Maximize cues panel';
+  } else {
+    // Restore from collapsed first if needed
+    sidebar.classList.remove('panel-collapsed');
+    sidebar.classList.add('panel-maximized');
+    btnMaxCues.innerHTML = icon('minimize');
+    btnMaxCues.title = 'Restore cues panel';
+  }
+  const ps = loadPanelState();
+  ps.cuesMaximized = !isMaximized;
+  savePanelState(ps);
+}
+
+btnMaxCues.addEventListener('click', toggleMaximizeCues);
+
+// --- Preview Pane Controls ---
+const previewPane = document.getElementById('preview-pane');
+const btnHidePreview = document.getElementById('btn-hide-preview');
+const btnTogglePreview = document.getElementById('btn-toggle-preview');
+const btnMaxPreview = document.getElementById('btn-maximize-preview');
+const btnPresentPreview = document.getElementById('btn-present-preview');
+const resizeEditorPreview = document.getElementById('resize-editor-preview');
+
+function toggleHidePreview() {
+  const isHidden = previewPane.classList.contains('panel-hidden');
+  if (isHidden) {
+    previewPane.classList.remove('panel-hidden');
+    resizeEditorPreview.style.display = '';
+    btnHidePreview.innerHTML = icon('eye-off');
+    btnHidePreview.title = 'Hide preview';
+    btnTogglePreview.innerHTML = icon('eye-off');
+    btnTogglePreview.title = 'Hide preview';
+  } else {
+    // Restore from maximized first
+    previewPane.classList.remove('panel-maximized');
+    previewPane.classList.add('panel-hidden');
+    resizeEditorPreview.style.display = 'none';
+    btnHidePreview.innerHTML = icon('eye');
+    btnHidePreview.title = 'Show preview';
+    btnTogglePreview.innerHTML = icon('eye');
+    btnTogglePreview.title = 'Show preview';
+  }
+  const ps = loadPanelState();
+  ps.previewHidden = !isHidden;
+  savePanelState(ps);
+}
+
+function toggleMaximizePreview() {
+  const isMaximized = previewPane.classList.contains('panel-maximized');
+  if (isMaximized) {
+    previewPane.classList.remove('panel-maximized');
+    btnMaxPreview.innerHTML = icon('maximize');
+    btnMaxPreview.title = 'Maximize preview';
+  } else {
+    previewPane.classList.remove('panel-hidden');
+    resizeEditorPreview.style.display = '';
+    btnHidePreview.innerHTML = icon('eye-off');
+    btnHidePreview.title = 'Hide preview';
+    btnTogglePreview.innerHTML = icon('eye-off');
+    btnTogglePreview.title = 'Hide preview';
+    previewPane.classList.add('panel-maximized');
+    btnMaxPreview.innerHTML = icon('minimize');
+    btnMaxPreview.title = 'Restore preview';
+  }
+  const ps = loadPanelState();
+  ps.previewMaximized = !isMaximized;
+  ps.previewHidden = false;
+  savePanelState(ps);
+}
+
+// --- Slide Presentation Mode Implementation ---
+let presentationActive = false;
+let slides = [];
+let currentSlideIndex = 0;
+let slideZoomMultiplier = 1.0;
+const BASE_WIDTH = 960;
+const BASE_HEIGHT = 600;
+
+const presentationOverlay = document.getElementById('presentation-overlay');
+const presentationNoteTitle = document.getElementById('presentation-note-title');
+const presentationSlideBox = document.getElementById('presentation-slide-box');
+const presentationSlideContent = document.getElementById('presentation-slide-content');
+const presentSlideCounter = document.getElementById('present-slide-counter');
+const presentZoomLevel = document.getElementById('present-zoom-level');
+
+// Inject presentation icons
+document.getElementById('btn-present-close').innerHTML = icon('x');
+document.getElementById('btn-present-prev').innerHTML = icon('chevron-left');
+document.getElementById('btn-present-next').innerHTML = icon('chevron-right');
+document.getElementById('btn-present-zoom-out').innerHTML = icon('zoom-out');
+document.getElementById('btn-present-zoom-in').innerHTML = icon('zoom-in');
+
+function adjustSlideScale() {
+  if (!presentationActive) return;
+  const body = document.querySelector('.presentation-body');
+  if (!presentationSlideBox || !body) return;
+
+  const bodyWidth = body.clientWidth;
+  const bodyHeight = body.clientHeight;
+
+  // Fit scale with padding
+  const scaleX = (bodyWidth - 40) / BASE_WIDTH;
+  const scaleY = (bodyHeight - 40) / BASE_HEIGHT;
+  const fitScale = Math.min(scaleX, scaleY);
+
+  const finalScale = fitScale * slideZoomMultiplier;
+
+  presentationSlideBox.style.transform = `translate(-50%, -50%) scale(${finalScale})`;
+  
+  if (presentZoomLevel) {
+    presentZoomLevel.textContent = `${Math.round(slideZoomMultiplier * 100)}%`;
+  }
+}
+
+function showSlide(index) {
+  if (index < 0 || index >= slides.length) return;
+  currentSlideIndex = index;
+  
+  presentationSlideContent.innerHTML = '';
+  slides[currentSlideIndex].forEach(node => {
+    presentationSlideContent.appendChild(node.cloneNode(true));
+  });
+
+  presentSlideCounter.textContent = `${currentSlideIndex + 1} / ${slides.length}`;
+
+  document.getElementById('btn-present-prev').disabled = (currentSlideIndex === 0);
+  document.getElementById('btn-present-next').disabled = (currentSlideIndex === slides.length - 1);
+  
+  adjustSlideScale();
+}
+
+function enterPresentMode() {
+  const previewContent = document.getElementById('preview-content');
+  if (!previewContent) return;
+
+  slides = [];
+  const proseDiv = previewContent.querySelector('.prose');
+  const rootElement = proseDiv || previewContent;
+
+  let currentSlideNodes = [];
+  Array.from(rootElement.childNodes).forEach(node => {
+    if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'HR') {
+      if (currentSlideNodes.length > 0) {
+        slides.push(currentSlideNodes);
+        currentSlideNodes = [];
+      }
+    } else {
+      currentSlideNodes.push(node.cloneNode(true));
+    }
+  });
+  if (currentSlideNodes.length > 0) {
+    slides.push(currentSlideNodes);
+  }
+
+  if (slides.length === 0) {
+    const p = document.createElement('p');
+    p.textContent = 'No content to present.';
+    slides.push([p]);
+  }
+
+  presentationActive = true;
+  slideZoomMultiplier = 1.0;
+  presentationNoteTitle.textContent = document.getElementById('note-title').value || 'Untitled note…';
+
+  presentationOverlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  showSlide(0);
+
+  window.addEventListener('resize', adjustSlideScale);
+}
+
+function exitPresentMode() {
+  presentationActive = false;
+  presentationOverlay.style.display = 'none';
+  document.body.style.overflow = '';
+  window.removeEventListener('resize', adjustSlideScale);
+}
+
+function nextSlide() {
+  if (currentSlideIndex < slides.length - 1) {
+    showSlide(currentSlideIndex + 1);
+  }
+}
+
+function prevSlide() {
+  if (currentSlideIndex > 0) {
+    showSlide(currentSlideIndex - 1);
+  }
+}
+
+function zoomIn() {
+  slideZoomMultiplier = Math.min(2.5, slideZoomMultiplier + 0.1);
+  adjustSlideScale();
+}
+
+function zoomOut() {
+  slideZoomMultiplier = Math.max(0.5, slideZoomMultiplier - 0.1);
+  adjustSlideScale();
+}
+
+function resetZoom() {
+  slideZoomMultiplier = 1.0;
+  adjustSlideScale();
+}
+
+// Hook presentation control events
+document.getElementById('btn-present-close').addEventListener('click', exitPresentMode);
+document.getElementById('btn-present-prev').addEventListener('click', prevSlide);
+document.getElementById('btn-present-next').addEventListener('click', nextSlide);
+document.getElementById('btn-present-zoom-out').addEventListener('click', zoomOut);
+document.getElementById('btn-present-zoom-in').addEventListener('click', zoomIn);
+presentZoomLevel.addEventListener('click', resetZoom);
+
+function togglePresentMode() {
+  enterPresentMode();
+}
+
+btnHidePreview.addEventListener('click', toggleHidePreview);
+btnTogglePreview.addEventListener('click', toggleHidePreview);
+btnMaxPreview.addEventListener('click', toggleMaximizePreview);
+btnPresentPreview.addEventListener('click', togglePresentMode);
+
+// --- Table of Contents Overlay Toggle ---
+const btnTocPreview = document.getElementById('btn-toc-preview');
+const tocOverlay = document.getElementById('preview-toc-overlay');
+
+btnTocPreview.addEventListener('click', (e) => {
+  e.stopPropagation();
+  tocOverlay.classList.toggle('open');
+});
+
+// Close TOC overlay when clicking a link inside it
+tocOverlay.addEventListener('click', (e) => {
+  if (e.target.closest('a')) {
+    tocOverlay.classList.remove('open');
+  }
+});
+
+// Close TOC overlay when clicking outside
+document.addEventListener('click', (e) => {
+  if (!tocOverlay.contains(e.target) && e.target !== btnTocPreview) {
+    tocOverlay.classList.remove('open');
+  }
+});
+
+// --- Summary Maximize ---
+const bottomPanel = document.getElementById('bottom-panel');
+const btnMaxSummary = document.getElementById('btn-maximize-summary');
+const resizeSummary = document.getElementById('resize-summary');
+
+function toggleMaximizeSummary() {
+  const isMaximized = bottomPanel.classList.contains('panel-maximized');
+  if (isMaximized) {
+    bottomPanel.classList.remove('panel-maximized');
+    btnMaxSummary.innerHTML = icon('maximize');
+    btnMaxSummary.title = 'Maximize summary panel';
+    resizeSummary.style.display = '';
+  } else {
+    bottomPanel.classList.remove('panel-collapsed');
+    bottomPanel.classList.add('panel-maximized');
+    btnMaxSummary.innerHTML = icon('minimize');
+    btnMaxSummary.title = 'Restore summary panel';
+    resizeSummary.style.display = 'none';
+  }
+  const ps = loadPanelState();
+  ps.summaryMaximized = !isMaximized;
+  savePanelState(ps);
+}
+
+btnMaxSummary.addEventListener('click', toggleMaximizeSummary);
+
+// --- Escape key closes any maximized panel ---
+function handlePanelEscape(e) {
+  if (e.key !== 'Escape') return;
+  // Don't interfere with palette
+  if (palette.classList.contains('open')) return;
+
+  if (previewPane.classList.contains('panel-maximized')) {
+    e.preventDefault();
+    toggleMaximizePreview();
+    return;
+  }
+  if (sidebar.classList.contains('panel-maximized')) {
+    e.preventDefault();
+    toggleMaximizeCues();
+    return;
+  }
+  if (bottomPanel.classList.contains('panel-maximized')) {
+    e.preventDefault();
+    toggleMaximizeSummary();
+    return;
+  }
+}
+
 // --- Init ---
 (async () => {
   initSidebarResize();
@@ -439,8 +766,57 @@ function escHTML(s) {
     }
   }
 
+  // Restore panel states
+  const ps = loadPanelState();
+  if (ps.previewHidden) {
+    previewPane.classList.add('panel-hidden');
+    resizeEditorPreview.style.display = 'none';
+    btnHidePreview.innerHTML = icon('eye');
+    btnHidePreview.title = 'Show preview';
+    btnTogglePreview.innerHTML = icon('eye');
+    btnTogglePreview.title = 'Show preview';
+  } else {
+    btnTogglePreview.innerHTML = icon('eye-off');
+    btnTogglePreview.title = 'Hide preview';
+  }
+
   // Keyboard shortcuts
   document.addEventListener('keydown', (e) => {
+    if (presentationActive) {
+      const mod = e.ctrlKey || e.metaKey;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        exitPresentMode();
+        return;
+      }
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+        return;
+      }
+      if (e.key === 'ArrowLeft' || e.key === 'Backspace' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+        return;
+      }
+      if (mod && (e.key === '=' || e.key === '+')) {
+        e.preventDefault();
+        zoomIn();
+        return;
+      }
+      if (mod && e.key === '-') {
+        e.preventDefault();
+        zoomOut();
+        return;
+      }
+      if (mod && e.key === '0') {
+        e.preventDefault();
+        resetZoom();
+        return;
+      }
+      return; // disable other app shortcuts during presentation
+    }
+
     const mod = e.ctrlKey || e.metaKey;
     if (mod && e.key === 's') { e.preventDefault(); persist.flush(); }
     if (mod && e.key === 'n') { e.preventDefault(); newNote(); }
@@ -452,7 +828,9 @@ function escHTML(s) {
     if (e.key === 'Escape' && palette.classList.contains('open')) {
       e.preventDefault();
       closePalette();
+      return;
     }
+    handlePanelEscape(e);
   });
 
   // Word count

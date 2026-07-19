@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ENotes — Personal Notes</title>
+  <title>ENotes — Cornell Notes for Deep Learning</title>
+  <meta name="description" content="A lightweight, offline-first Cornell Notes application. Zero cloud, zero tracking — your notes stay yours." />
   <link rel="stylesheet" href="/src/style.css" />
 </head>
 <body>
@@ -37,7 +38,10 @@
       <aside id="sidebar">
         <div class="panel-header">
           <h2>Cues</h2>
-          <button id="btn-add-cue" class="btn btn-ghost btn-icon-only btn-sm" title="Add cue"></button>
+          <div class="panel-controls">
+            <button id="btn-add-cue" class="btn btn-ghost btn-icon-only btn-sm" title="Add cue"></button>
+            <button id="btn-maximize-cues" class="btn btn-ghost btn-icon-only btn-sm" title="Maximize cues panel"></button>
+          </div>
         </div>
         <ul id="cues-list"></ul>
       </aside>
@@ -53,6 +57,7 @@
             autocomplete="off"
             spellcheck="true"
           />
+          <button id="btn-toggle-preview" class="btn btn-ghost btn-icon-only" title="Toggle preview"></button>
           <button id="btn-pin" class="btn btn-ghost btn-icon-only" title="Pin note"></button>
         </div>
         <div class="tags-row">
@@ -74,7 +79,17 @@
             ></textarea>
           </div>
           <div id="resize-editor-preview" class="resize-handle resize-handle-v"></div>
-          <div class="preview-pane">
+          <div id="preview-pane" class="preview-pane">
+            <div class="preview-header">
+              <span class="preview-header-label">Preview</span>
+              <div class="panel-controls">
+                <button id="btn-toc-preview" class="btn btn-ghost btn-icon-only btn-sm" title="Table of contents" style="display:none"></button>
+                <button id="btn-hide-preview" class="btn btn-ghost btn-icon-only btn-sm" title="Hide preview"></button>
+                <button id="btn-maximize-preview" class="btn btn-ghost btn-icon-only btn-sm" title="Maximize preview"></button>
+                <button id="btn-present-preview" class="btn btn-ghost btn-icon-only btn-sm" title="Present mode"></button>
+              </div>
+            </div>
+            <div id="preview-toc-overlay" class="preview-toc-overlay"></div>
             <div id="preview-content" class="prose"></div>
           </div>
         </div>
@@ -87,6 +102,9 @@
     <footer id="bottom-panel">
       <div class="panel-header">
         <label for="summary-textarea">Summary</label>
+        <div class="panel-controls">
+          <button id="btn-maximize-summary" class="btn btn-ghost btn-icon-only btn-sm" title="Maximize summary panel"></button>
+        </div>
       </div>
       <textarea
         id="summary-textarea"
@@ -114,6 +132,29 @@
           <span><kbd>↵</kbd> Select</span>
           <span><kbd>Esc</kbd> Close</span>
         </div>
+      </div>
+    </div>
+
+    <!-- Presentation Overlay -->
+    <div id="presentation-overlay" class="presentation-overlay" style="display: none;">
+      <div class="presentation-header">
+        <span id="presentation-note-title" class="presentation-title">Untitled note…</span>
+        <button id="btn-present-close" class="btn btn-ghost btn-icon-only btn-sm" title="Exit presentation (Esc)"></button>
+      </div>
+      <div class="presentation-body">
+        <div id="presentation-slide-box" class="slide-box">
+          <div id="presentation-slide-content" class="prose slide-content"></div>
+        </div>
+      </div>
+      <!-- Translucent HUD controls -->
+      <div class="presentation-hud">
+        <button id="btn-present-prev" class="btn btn-ghost btn-icon-only btn-sm" title="Previous slide (←)"></button>
+        <span id="present-slide-counter" class="present-slide-counter">1 / 1</span>
+        <button id="btn-present-next" class="btn btn-ghost btn-icon-only btn-sm" title="Next slide (→, Space)"></button>
+        <div class="hud-divider"></div>
+        <button id="btn-present-zoom-out" class="btn btn-ghost btn-icon-only btn-sm" title="Zoom out"></button>
+        <span id="present-zoom-level" class="present-zoom-level">100%</span>
+        <button id="btn-present-zoom-in" class="btn btn-ghost btn-icon-only btn-sm" title="Zoom in"></button>
       </div>
     </div>
   </div>

@@ -1,4 +1,25 @@
 import { Marked } from 'marked';
+import hljs from 'highlight.js/lib/core';
+import javascript from 'highlight.js/lib/languages/javascript';
+import python from 'highlight.js/lib/languages/python';
+import bash from 'highlight.js/lib/languages/bash';
+import json from 'highlight.js/lib/languages/json';
+import css from 'highlight.js/lib/languages/css';
+import xml from 'highlight.js/lib/languages/xml';
+import markdown from 'highlight.js/lib/languages/markdown';
+
+hljs.registerLanguage('javascript', javascript);
+hljs.registerLanguage('js', javascript);
+hljs.registerLanguage('python', python);
+hljs.registerLanguage('py', python);
+hljs.registerLanguage('bash', bash);
+hljs.registerLanguage('sh', bash);
+hljs.registerLanguage('json', json);
+hljs.registerLanguage('css', css);
+hljs.registerLanguage('xml', xml);
+hljs.registerLanguage('html', xml);
+hljs.registerLanguage('markdown', markdown);
+hljs.registerLanguage('md', markdown);
 
 const marked = new Marked({ gfm: true });
 
@@ -80,6 +101,15 @@ export function renderMarkdown(markdown) {
   const html = marked.parse(markdown || '');
   const container = document.createElement('div');
   container.innerHTML = html;
+
+  // Code syntax highlighting
+  container.querySelectorAll('pre code').forEach((block) => {
+    try {
+      hljs.highlightElement(block);
+    } catch (e) {
+      console.error('Highlight error:', e);
+    }
+  });
 
   const usedSlugs = new Set();
   const headings = Array.from(container.querySelectorAll('h1, h2, h3, h4, h5, h6')).map((heading) => {

@@ -16,22 +16,38 @@ let tags = [];
 // --- Live markdown preview ---
 export function updatePreview() {
   const { html, tocHtml } = renderMarkdown(textarea.value || '');
-  preview.innerHTML = `${tocHtml}<div class="prose">${html}</div>`;
+  preview.innerHTML = `<div class="prose">${html}</div>`;
+  
+  const tocOverlay = document.getElementById('preview-toc-overlay');
+  const btnToc = document.getElementById('btn-toc-preview');
+  
+  if (tocOverlay && btnToc) {
+    if (tocHtml) {
+      tocOverlay.innerHTML = tocHtml;
+      btnToc.style.display = '';
+    } else {
+      tocOverlay.innerHTML = '';
+      tocOverlay.classList.remove('open');
+      btnToc.style.display = 'none';
+    }
+  }
 }
 
 // --- Sync scroll ---
+// preview-content is the scrollable container now (it has overflow-y: auto)
+const previewScroller = preview;
 let scrollSyncing = false;
 textarea.addEventListener('scroll', () => {
   if (scrollSyncing) return;
   scrollSyncing = true;
   const ratio = textarea.scrollTop / (textarea.scrollHeight - textarea.clientHeight || 1);
-  preview.parentElement.scrollTop = ratio * (preview.parentElement.scrollHeight - preview.parentElement.clientHeight);
+  previewScroller.scrollTop = ratio * (previewScroller.scrollHeight - previewScroller.clientHeight);
   requestAnimationFrame(() => (scrollSyncing = false));
 });
-preview.parentElement.addEventListener('scroll', () => {
+previewScroller.addEventListener('scroll', () => {
   if (scrollSyncing) return;
   scrollSyncing = true;
-  const ratio = preview.parentElement.scrollTop / (preview.parentElement.scrollHeight - preview.parentElement.clientHeight || 1);
+  const ratio = previewScroller.scrollTop / (previewScroller.scrollHeight - previewScroller.clientHeight || 1);
   textarea.scrollTop = ratio * (textarea.scrollHeight - textarea.clientHeight);
   requestAnimationFrame(() => (scrollSyncing = false));
 });
