@@ -1,8 +1,8 @@
-import { saveNote, deleteNote, listNotes, getNote, getStorageEstimate } from './db.js';
+import { saveNote, deleteNote, listNotes, getNote, getStorageEstimate, clearAllNotes, importNotes } from './db.js';
 import { getEndpoint, setEndpoint, hasEndpoint, getUserId, setUserId, syncNotes } from './sync.js';
 import { getEditorState, setEditorState, clearEditor, onEditorChange, onCueChange, onAddCue, onTagChange, tagsList, getMindmapActive, setMindmapActive } from './editor.js';
 import { debounce, formatBytes } from './utils.js';
-import { exportJSON, exportMarkdown, importFile } from './export.js';
+import { exportJSON, exportMarkdown, importFile, exportAllNotes } from './export.js';
 import { icon } from './icons.js';
 import { initSidebarResize, initEditorPreviewResize, initSummaryResize } from './resize.js';
 import { drawMindmapLines, initMindmapZoomPan } from './mindmap.js';
@@ -305,7 +305,9 @@ async function renderPalette(query, tagFilter) {
   paletteActions.appendChild(actionRow('delete', icon('trash'), 'Delete current note', '', !currentNoteId));
   paletteActions.appendChild(actionRow('export-json', icon('file-download'), 'Export as JSON', ''));
   paletteActions.appendChild(actionRow('export-md', icon('file-export'), 'Export as Markdown', ''));
-  paletteActions.appendChild(actionRow('import', icon('file-import'), 'Import note…', ''));
+  paletteActions.appendChild(actionRow('export-all', icon('download'), 'Export all notes', ''));
+  paletteActions.appendChild(actionRow('import', icon('file-import'), 'Import note or backup…', ''));
+  paletteActions.appendChild(actionRow('clear-storage', icon('database-off'), 'Clear storage (Reset)', ''));
 
   // Count total navigable items
   totalItems = paletteResults.children.length + paletteActions.children.length;
@@ -434,9 +436,24 @@ async function executeRow(row) {
   } else if (action === 'export-md') {
     closePalette();
     exportMarkdown(getEditorState());
+  } else if (action === 'export-all') {
+    closePalette();
+    if (dirty) persist.flush();
+    const allNotes = await listNotes();
+    exportAllNotes(allNotes);
   } else if (action === 'import') {
     closePalette();
     importFileInput.click();
+  } else if (action === 'clear-storage') {
+    closePalette();
+    if (confirm('WARNING: This will permanently delete all your local notes, settings, and layout configuration. Are you sure you want to clear local storage?')) {
+      if (confirm('Double check: Are you absolutely sure? This cannot be undone.')) {
+        await clearAllNotes();
+        localStorage.clear();
+        alert('Local storage cleared successfully! The app will now reload.');
+        window.location.reload();
+      }
+    }
   }
 }
 
@@ -492,6 +509,36 @@ importFileInput.addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
   try {
+    const text = await file.text();
+    const ext = file.name.split('.').pop().toLowerCase();
+    
+    if (ext === 'json') {
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        throw new Error('Invalid JSON file.');
+      }
+      
+      if (data && data.type === 'knotes-backup' && Array.isArray(data.notes)) {
+        if (confirm(`Importing backup will add/restore ${data.notes.length} notes. Proceed?`)) {
+          await importNotes(data.notes);
+          alert('Backup imported successfully!');
+          await updateStorageInfo();
+          await renderPalette(null, activeTagFilter);
+          const notes = await listNotes();
+          if (notes.length > 0) {
+            notes.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+            await loadNote(notes[0].id);
+          } else {
+            await loadNote(null);
+          }
+        }
+        e.target.value = '';
+        return;
+      }
+    }
+
     const note = await importFile(file);
     const saved = await saveNote(note);
     currentNoteId = saved.id;

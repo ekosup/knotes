@@ -7,6 +7,8 @@ import IconTrash from '@tabler/icons/outline/trash.svg?raw';
 import IconFileDownload from '@tabler/icons/outline/file-download.svg?raw';
 import IconFileExport from '@tabler/icons/outline/file-export.svg?raw';
 import IconFileImport from '@tabler/icons/outline/file-import.svg?raw';
+import IconDatabaseOff from '@tabler/icons/outline/database-off.svg?raw';
+import IconDownload from '@tabler/icons/outline/download.svg?raw';
 import IconSun from '@tabler/icons/outline/sun.svg?raw';
 import IconMoon from '@tabler/icons/outline/moon.svg?raw';
 import IconGripVertical from '@tabler/icons/outline/grip-vertical.svg?raw';
@@ -44,6 +46,8 @@ const icons = {
   'file-download': IconFileDownload,
   'file-export': IconFileExport,
   'file-import': IconFileImport,
+  'database-off': IconDatabaseOff,
+  download: IconDownload,
   sun: IconSun,
   moon: IconMoon,
   'grip-vertical': IconGripVertical,

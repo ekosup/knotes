@@ -113,3 +113,16 @@ function downloadBlob(blob, filename) {
 function slug(s) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'note';
 }
+
+export function exportAllNotes(notes) {
+  const backup = {
+    type: 'knotes-backup',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    notes
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const dateStr = new Date().toISOString().split('T')[0];
+  downloadBlob(blob, `knotes-backup-${dateStr}.json`);
+}
+

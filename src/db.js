@@ -48,6 +48,28 @@ export async function deleteNote(id) {
   await db.delete(STORE, id);
 }
 
+export async function clearAllNotes() {
+  const db = await getDB();
+  await db.clear(STORE);
+}
+
+export async function importNotes(notes) {
+  const db = await getDB();
+  const tx = db.transaction(STORE, 'readwrite');
+  const store = tx.objectStore(STORE);
+  for (const note of notes) {
+    if (!note.id) {
+      note.id = uuid();
+    }
+    const now = new Date().toISOString();
+    if (!note.createdAt) note.createdAt = now;
+    if (!note.updatedAt) note.updatedAt = now;
+    await store.put(note);
+  }
+  await tx.done;
+}
+
+
 export async function getStorageEstimate() {
   if ('storage' in navigator && navigator.storage.estimate) {
     const { usage } = await navigator.storage.estimate();
