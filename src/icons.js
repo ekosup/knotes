@@ -36,6 +36,7 @@ import IconFileText from '@tabler/icons/outline/file-text.svg?raw';
 
 import IconZoomIn from '@tabler/icons/outline/zoom-in.svg?raw';
 import IconZoomOut from '@tabler/icons/outline/zoom-out.svg?raw';
+import IconSitemap from '@tabler/icons/outline/sitemap.svg?raw';
 
 const icons = {
   plus: IconPlus,
@@ -71,6 +72,7 @@ const icons = {
   'file-text': IconFileText,
   'zoom-in': IconZoomIn,
   'zoom-out': IconZoomOut,
+  sitemap: IconSitemap,
 };
 
 /**

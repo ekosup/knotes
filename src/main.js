@@ -1,10 +1,11 @@
 import { saveNote, deleteNote, listNotes, getNote, getStorageEstimate } from './db.js';
 import { getEndpoint, setEndpoint, hasEndpoint, getUserId, setUserId, syncNotes } from './sync.js';
-import { getEditorState, setEditorState, clearEditor, onEditorChange, onCueChange, onAddCue, onTagChange, tagsList } from './editor.js';
+import { getEditorState, setEditorState, clearEditor, onEditorChange, onCueChange, onAddCue, onTagChange, tagsList, getMindmapActive, setMindmapActive } from './editor.js';
 import { debounce, formatBytes } from './utils.js';
 import { exportJSON, exportMarkdown, importFile } from './export.js';
 import { icon } from './icons.js';
 import { initSidebarResize, initEditorPreviewResize, initSummaryResize } from './resize.js';
+import { drawMindmapLines, initMindmapZoomPan } from './mindmap.js';
 
 // --- Theme ---
 const themeKey = 'enotes-theme';
@@ -126,6 +127,7 @@ document.getElementById('btn-toggle-preview').innerHTML = icon('eye-off');
 document.getElementById('btn-maximize-preview').innerHTML = icon('maximize');
 document.getElementById('btn-present-preview').innerHTML = icon('presentation');
 document.getElementById('btn-toc-preview').innerHTML = icon('list');
+document.getElementById('btn-mindmap-toggle').innerHTML = icon('sitemap');
 
 // --- State ---
 let currentNoteId = null;
@@ -202,6 +204,9 @@ function switchToTab(tabName) {
       btn.classList.remove('active');
     }
   });
+  if (tabName === 'preview' && getMindmapActive()) {
+    setTimeout(drawMindmapLines, 50);
+  }
 }
 
 // --- Load note ---
@@ -582,6 +587,9 @@ function toggleHidePreview() {
     btnHidePreview.title = 'Hide preview';
     btnTogglePreview.innerHTML = icon('eye-off');
     btnTogglePreview.title = 'Hide preview';
+    if (getMindmapActive()) {
+      setTimeout(drawMindmapLines, 50);
+    }
   } else {
     // Restore from maximized first
     previewPane.classList.remove('panel-maximized');
@@ -613,6 +621,9 @@ function toggleMaximizePreview() {
     previewPane.classList.add('panel-maximized');
     btnMaxPreview.innerHTML = icon('minimize');
     btnMaxPreview.title = 'Restore preview';
+  }
+  if (getMindmapActive()) {
+    setTimeout(drawMindmapLines, 50);
   }
   const ps = loadPanelState();
   ps.previewMaximized = !isMaximized;
@@ -816,6 +827,9 @@ document.addEventListener('fullscreenchange', () => {
       btnFs.title = 'Enter Fullscreen (F)';
     }
   }
+  if (getMindmapActive()) {
+    setTimeout(drawMindmapLines, 150);
+  }
 });
 
 // Hook presentation control events
@@ -835,6 +849,20 @@ btnHidePreview.addEventListener('click', toggleHidePreview);
 btnTogglePreview.addEventListener('click', toggleHidePreview);
 btnMaxPreview.addEventListener('click', toggleMaximizePreview);
 btnPresentPreview.addEventListener('click', togglePresentMode);
+
+// --- Mindmap Toggle & Connection Redrawing ---
+const btnMindmapToggle = document.getElementById('btn-mindmap-toggle');
+btnMindmapToggle.addEventListener('click', () => {
+  const nextActive = !getMindmapActive();
+  setMindmapActive(nextActive);
+  btnMindmapToggle.classList.toggle('active', nextActive);
+});
+
+window.addEventListener('resize', () => {
+  if (getMindmapActive()) {
+    drawMindmapLines();
+  }
+});
 
 // --- Table of Contents Overlay Toggle ---
 const btnTocPreview = document.getElementById('btn-toc-preview');
@@ -913,6 +941,7 @@ function handlePanelEscape(e) {
   initSidebarResize();
   initEditorPreviewResize();
   initSummaryResize();
+  initMindmapZoomPan();
   updateStorageInfo();
 
   // Restore last active note

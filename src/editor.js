@@ -1,5 +1,7 @@
 import { icon } from './icons.js';
 import { renderMarkdown } from './markdown.js';
+import { renderMindmap } from './mindmap.js';
+import { debounce } from './utils.js';
 
 const textarea = document.getElementById('editor-textarea');
 const preview = document.getElementById('preview-content');
@@ -12,23 +14,65 @@ const btnPin = document.getElementById('btn-pin');
 
 let pinned = false;
 let tags = [];
+let mindmapActive = false;
+
+export function getMindmapActive() {
+  return mindmapActive;
+}
+
+export function setMindmapActive(active) {
+  mindmapActive = active;
+  if (!active) {
+    debouncedRender.cancel();
+  }
+  updatePreview(true, active); // Switch view immediately and reset zoom/pan if turning ON
+}
+
+// Debounced mindmap rendering (3-second pooling/debounce for typing in editor)
+const debouncedRender = debounce((val, title) => {
+  renderMindmap(val, title);
+}, 3000);
 
 // --- Live markdown preview ---
-export function updatePreview() {
-  const { html, tocHtml } = renderMarkdown(textarea.value || '');
-  preview.innerHTML = `<div class="prose">${html}</div>`;
-  
-  const tocOverlay = document.getElementById('preview-toc-overlay');
+export function updatePreview(immediate = false) {
+  const mindmapContent = document.getElementById('mindmap-content');
   const btnToc = document.getElementById('btn-toc-preview');
-  
-  if (tocOverlay && btnToc) {
-    if (tocHtml) {
-      tocOverlay.innerHTML = tocHtml;
-      btnToc.style.display = '';
-    } else {
-      tocOverlay.innerHTML = '';
-      tocOverlay.classList.remove('open');
-      btnToc.style.display = 'none';
+  const tocOverlay = document.getElementById('preview-toc-overlay');
+
+  if (mindmapActive) {
+    preview.style.display = 'none';
+    if (mindmapContent) mindmapContent.style.display = 'flex';
+    if (btnToc) btnToc.style.display = 'none';
+    if (tocOverlay) tocOverlay.classList.remove('open');
+
+    // Only update mindmap if focus is not inside a mindmap node text,
+    // to prevent losing cursor position and focus.
+    const activeEl = document.activeElement;
+    const editingMindmapNode = activeEl && activeEl.classList.contains('mindmap-node-text');
+    if (!editingMindmapNode) {
+      if (immediate) {
+        debouncedRender.cancel();
+        renderMindmap(textarea.value || '', titleInput.value || '');
+      } else {
+        debouncedRender(textarea.value || '', titleInput.value || '');
+      }
+    }
+  } else {
+    preview.style.display = '';
+    if (mindmapContent) mindmapContent.style.display = 'none';
+
+    const { html, tocHtml } = renderMarkdown(textarea.value || '');
+    preview.innerHTML = `<div class="prose">${html}</div>`;
+    
+    if (tocOverlay && btnToc) {
+      if (tocHtml) {
+        tocOverlay.innerHTML = tocHtml;
+        btnToc.style.display = '';
+      } else {
+        tocOverlay.innerHTML = '';
+        tocOverlay.classList.remove('open');
+        btnToc.style.display = 'none';
+      }
     }
   }
 }
@@ -87,7 +131,7 @@ export function setEditorState({ title, content, summary, cues, tags: t, pinned:
   summaryTextarea.value = summary || '';
   tags = t || [];
   pinned = p || false;
-  updatePreview();
+  updatePreview(true, true); // Load note state, render immediately, and reset zoom/pan
   layoutCues(cues || []);
   layoutTags();
   updatePinButton();
@@ -161,7 +205,7 @@ btnPin.addEventListener('click', () => {
 // --- Event wiring ---
 export function onEditorChange(fn) {
   textarea.addEventListener('input', () => { updatePreview(); fn(); });
-  titleInput.addEventListener('input', fn);
+  titleInput.addEventListener('input', () => { updatePreview(); fn(); });
   summaryTextarea.addEventListener('input', fn);
 }
 

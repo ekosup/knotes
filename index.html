@@ -96,6 +96,7 @@
               <span class="preview-header-label">Preview</span>
               <div class="panel-controls">
                 <button id="btn-toc-preview" class="btn btn-ghost btn-icon-only btn-sm" title="Table of contents" style="display:none"></button>
+                <button id="btn-mindmap-toggle" class="btn btn-ghost btn-icon-only btn-sm" title="Toggle mindmap view"></button>
                 <button id="btn-hide-preview" class="btn btn-ghost btn-icon-only btn-sm" title="Hide preview"></button>
                 <button id="btn-maximize-preview" class="btn btn-ghost btn-icon-only btn-sm" title="Maximize preview"></button>
                 <button id="btn-present-preview" class="btn btn-ghost btn-icon-only btn-sm" title="Present mode"></button>
@@ -103,6 +104,17 @@
             </div>
             <div id="preview-toc-overlay" class="preview-toc-overlay"></div>
             <div id="preview-content" class="prose"></div>
+            <div id="mindmap-content" class="mindmap-content" style="display: none;">
+              <div id="mindmap-viewport-content" class="mindmap-viewport-content">
+                <svg id="mindmap-svg" class="mindmap-svg"></svg>
+                <div id="mindmap-container" class="mindmap-container"></div>
+              </div>
+              <div class="mindmap-hud">
+                <button id="btn-mindmap-zoom-out" class="btn btn-ghost btn-icon-only btn-sm" title="Zoom out"></button>
+                <span id="mindmap-zoom-level" class="mindmap-zoom-level" title="Reset zoom & pan">100%</span>
+                <button id="btn-mindmap-zoom-in" class="btn btn-ghost btn-icon-only btn-sm" title="Zoom in"></button>
+              </div>
+            </div>
           </div>
         </div>
       </main>

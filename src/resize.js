@@ -38,6 +38,7 @@ export function initSidebarResize() {
     const w = Math.max(180, Math.min(500, startW + (e.clientX - startX)));
     sidebar.style.width = w + 'px';
     layout.sidebarW = w;
+    window.dispatchEvent(new Event('resize'));
   });
 
   document.addEventListener('mouseup', () => {
@@ -47,6 +48,7 @@ export function initSidebarResize() {
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
     saveLayout(layout);
+    window.dispatchEvent(new Event('resize'));
   });
 }
 
@@ -82,6 +84,7 @@ export function initEditorPreviewResize() {
     setFlex(editor, flex);
     setFlex(preview, 1 - flex);
     layout.editorFlex = flex;
+    window.dispatchEvent(new Event('resize'));
   });
 
   document.addEventListener('mouseup', () => {
@@ -91,6 +94,7 @@ export function initEditorPreviewResize() {
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
     saveLayout(layout);
+    window.dispatchEvent(new Event('resize'));
   });
 }
 
@@ -121,6 +125,7 @@ export function initSummaryResize() {
     const h = Math.max(64, Math.min(400, startH - (e.clientY - startY)));
     panel.style.height = h + 'px';
     layout.summaryH = h;
+    window.dispatchEvent(new Event('resize'));
   });
 
   document.addEventListener('mouseup', () => {
@@ -130,6 +135,7 @@ export function initSummaryResize() {
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
     saveLayout(layout);
+    window.dispatchEvent(new Event('resize'));
   });
 }
 
