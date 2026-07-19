@@ -139,7 +139,10 @@
     <div id="presentation-overlay" class="presentation-overlay" style="display: none;">
       <div class="presentation-header">
         <span id="presentation-note-title" class="presentation-title">Untitled note…</span>
-        <button id="btn-present-close" class="btn btn-ghost btn-icon-only btn-sm" title="Exit presentation (Esc)"></button>
+        <div class="presentation-header-actions" style="display: flex; gap: 8px;">
+          <button id="btn-present-fullscreen" class="btn btn-ghost btn-icon-only btn-sm" title="Enter Fullscreen (F)"></button>
+          <button id="btn-present-close" class="btn btn-ghost btn-icon-only btn-sm" title="Exit presentation (Esc)"></button>
+        </div>
       </div>
       <div class="presentation-body">
         <div id="presentation-slide-box" class="slide-box">

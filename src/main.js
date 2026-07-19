@@ -525,8 +525,24 @@ let presentationActive = false;
 let slides = [];
 let currentSlideIndex = 0;
 let slideZoomMultiplier = 1.0;
+let hudTimeout = null;
 const BASE_WIDTH = 960;
 const BASE_HEIGHT = 600;
+
+function resetHudTimeout() {
+  if (!presentationActive) return;
+  const hud = document.querySelector('.presentation-hud');
+  if (hud) hud.classList.remove('hud-hidden');
+  presentationOverlay.style.cursor = 'default';
+
+  clearTimeout(hudTimeout);
+  hudTimeout = setTimeout(() => {
+    if (presentationActive && hud) {
+      hud.classList.add('hud-hidden');
+      presentationOverlay.style.cursor = 'none';
+    }
+  }, 5000);
+}
 
 const presentationOverlay = document.getElementById('presentation-overlay');
 const presentationNoteTitle = document.getElementById('presentation-note-title');
@@ -536,6 +552,7 @@ const presentSlideCounter = document.getElementById('present-slide-counter');
 const presentZoomLevel = document.getElementById('present-zoom-level');
 
 // Inject presentation icons
+document.getElementById('btn-present-fullscreen').innerHTML = icon('maximize');
 document.getElementById('btn-present-close').innerHTML = icon('x');
 document.getElementById('btn-present-prev').innerHTML = icon('chevron-left');
 document.getElementById('btn-present-next').innerHTML = icon('chevron-right');
@@ -579,6 +596,7 @@ function showSlide(index) {
   document.getElementById('btn-present-next').disabled = (currentSlideIndex === slides.length - 1);
   
   adjustSlideScale();
+  resetHudTimeout();
 }
 
 function enterPresentMode() {
@@ -619,6 +637,13 @@ function enterPresentMode() {
 
   showSlide(0);
 
+  // Auto-request browser fullscreen
+  document.documentElement.requestFullscreen().catch(() => {});
+
+  // Start HUD auto-hide timeout and wire mouse listener
+  resetHudTimeout();
+  presentationOverlay.addEventListener('mousemove', resetHudTimeout);
+
   window.addEventListener('resize', adjustSlideScale);
 }
 
@@ -627,6 +652,18 @@ function exitPresentMode() {
   presentationOverlay.style.display = 'none';
   document.body.style.overflow = '';
   window.removeEventListener('resize', adjustSlideScale);
+
+  // Clean up HUD auto-hide timeout and listeners
+  clearTimeout(hudTimeout);
+  presentationOverlay.removeEventListener('mousemove', resetHudTimeout);
+  presentationOverlay.style.cursor = '';
+  const hud = document.querySelector('.presentation-hud');
+  if (hud) hud.classList.remove('hud-hidden');
+
+  // Auto-exit fullscreen if active
+  if (document.fullscreenElement) {
+    document.exitFullscreen().catch(() => {});
+  }
 }
 
 function nextSlide() {
@@ -644,19 +681,45 @@ function prevSlide() {
 function zoomIn() {
   slideZoomMultiplier = Math.min(2.5, slideZoomMultiplier + 0.1);
   adjustSlideScale();
+  resetHudTimeout();
 }
 
 function zoomOut() {
   slideZoomMultiplier = Math.max(0.5, slideZoomMultiplier - 0.1);
   adjustSlideScale();
+  resetHudTimeout();
 }
 
 function resetZoom() {
   slideZoomMultiplier = 1.0;
   adjustSlideScale();
+  resetHudTimeout();
 }
 
+function toggleBrowserFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+}
+
+// Update fullscreen icon on state changes
+document.addEventListener('fullscreenchange', () => {
+  const btnFs = document.getElementById('btn-present-fullscreen');
+  if (btnFs) {
+    if (document.fullscreenElement) {
+      btnFs.innerHTML = icon('minimize');
+      btnFs.title = 'Exit Fullscreen (F)';
+    } else {
+      btnFs.innerHTML = icon('maximize');
+      btnFs.title = 'Enter Fullscreen (F)';
+    }
+  }
+});
+
 // Hook presentation control events
+document.getElementById('btn-present-fullscreen').addEventListener('click', toggleBrowserFullscreen);
 document.getElementById('btn-present-close').addEventListener('click', exitPresentMode);
 document.getElementById('btn-present-prev').addEventListener('click', prevSlide);
 document.getElementById('btn-present-next').addEventListener('click', nextSlide);
@@ -812,6 +875,11 @@ function handlePanelEscape(e) {
       if (mod && e.key === '0') {
         e.preventDefault();
         resetZoom();
+        return;
+      }
+      if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleBrowserFullscreen();
         return;
       }
       return; // disable other app shortcuts during presentation

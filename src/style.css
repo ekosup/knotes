@@ -1311,6 +1311,13 @@ body {
   border-radius: 9999px;
   box-shadow: var(--shadow-lg);
   z-index: 10;
+  transition: opacity var(--transition-smooth), transform var(--transition-smooth);
+}
+
+.presentation-hud.hud-hidden {
+  opacity: 0;
+  transform: translate(-50%, 12px);
+  pointer-events: none;
 }
 
 .present-slide-counter,
