@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ENotes — Personal Notes</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Top Navbar -->
+    <header id="navbar">
+      <div class="navbar-section navbar-start">
+        <span class="logo-icon"></span>
+        <h1 class="logo">ENotes</h1>
+      </div>
+
+      <div class="navbar-section navbar-center">
+        <button id="palette-trigger" class="palette-trigger" title="Search notes (Ctrl+K)">
+          <span class="trigger-search-icon"></span>
+          <span id="current-note-label">Search notes…</span>
+          <span class="trigger-kbd">⌘K</span>
+        </button>
+      </div>
+
+      <div class="navbar-section navbar-end">
+        <span id="word-count" class="word-count"></span>
+        <span id="storage-info" class="storage-info"></span>
+        <span id="status-badge" class="badge">Offline</span>
+        <button id="btn-theme" class="btn btn-ghost btn-icon-only" title="Toggle theme"></button>
+      </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div id="layout">
+      <!-- Left Sidebar: Cues -->
+      <aside id="sidebar">
+        <div class="panel-header">
+          <h2>Cues</h2>
+          <button id="btn-add-cue" class="btn btn-ghost btn-icon-only btn-sm" title="Add cue"></button>
+        </div>
+        <ul id="cues-list"></ul>
+      </aside>
+      <div id="resize-sidebar" class="resize-handle resize-handle-v"></div>
+
+      <!-- Main Area: Editor + Preview -->
+      <main id="main-area">
+        <div class="title-row">
+          <input
+            type="text"
+            id="note-title"
+            placeholder="Untitled note…"
+            autocomplete="off"
+            spellcheck="true"
+          />
+          <button id="btn-pin" class="btn btn-ghost btn-icon-only" title="Pin note"></button>
+        </div>
+        <div class="tags-row">
+          <div id="tags-list"></div>
+          <input
+            type="text"
+            id="tag-input"
+            class="tag-input-inline"
+            placeholder="Add tag…"
+            autocomplete="off"
+          />
+        </div>
+        <div id="editor-container">
+          <div class="editor-pane">
+            <textarea
+              id="editor-textarea"
+              placeholder="Start writing in Markdown…"
+              spellcheck="true"
+            ></textarea>
+          </div>
+          <div id="resize-editor-preview" class="resize-handle resize-handle-v"></div>
+          <div class="preview-pane">
+            <div id="preview-content" class="prose"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div id="resize-summary" class="resize-handle resize-handle-h"></div>
+
+    <!-- Bottom Panel: Summary -->
+    <footer id="bottom-panel">
+      <div class="panel-header">
+        <label for="summary-textarea">Summary</label>
+      </div>
+      <textarea
+        id="summary-textarea"
+        placeholder="Synthesize your notes into a concise summary…"
+        rows="3"
+      ></textarea>
+    </footer>
+
+    <!-- Hidden file input -->
+    <input type="file" id="import-file" accept=".json,.md,.markdown" hidden />
+
+    <!-- Command Palette -->
+    <div id="command-palette" class="command-palette" hidden>
+      <div class="palette-backdrop"></div>
+      <div class="palette-dialog">
+        <div class="palette-search">
+          <span class="palette-search-icon"></span>
+          <input id="palette-input" type="text" placeholder="Search notes…" autocomplete="off" spellcheck="false" />
+          <span id="palette-tag-badge" class="palette-tag-badge" style="display:none"></span>
+        </div>
+        <div id="palette-results" class="palette-results"></div>
+        <div id="palette-actions" class="palette-actions"></div>
+        <div class="palette-footer">
+          <span><kbd>↑↓</kbd> Navigate</span>
+          <span><kbd>↵</kbd> Select</span>
+          <span><kbd>Esc</kbd> Close</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
